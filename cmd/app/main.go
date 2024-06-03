@@ -12,6 +12,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// set the configs and dependency injections
+	// TODO - set up the configs and dependency injection
 	app.StartApp()
 }
