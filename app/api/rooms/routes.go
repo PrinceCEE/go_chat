@@ -1,9 +1,12 @@
 package rooms
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/princecee/go_chat/internal/services"
+)
 
-func Routes(r *gin.RouterGroup) {
-	h := roomHandler{}
+func Routes(r *gin.RouterGroup, s services.Services) {
+	h := roomHandler{services: s}
 
 	r.GET("/:id", h.getRoom)
 	r.GET("/", h.getRooms)

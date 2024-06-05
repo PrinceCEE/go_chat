@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/princecee/go_chat/app/api"
 	"github.com/princecee/go_chat/app/websocket"
 )
 
-func StartApp() {
+func StartApp(conn *pgxpool.Pool) {
 	r := gin.Default()
 
 	env := os.Getenv("ENVIRONMENT")
@@ -26,8 +27,8 @@ func StartApp() {
 	}
 
 	// setup websocket and api handlers
-	websocket.SetupWebsocket(r)
-	api.SetupAPI(r)
+	websocket.SetupWebsocket(r, conn)
+	api.SetupAPI(r, conn)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

@@ -1,8 +1,13 @@
 package rooms
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/princecee/go_chat/internal/services"
+)
 
-type roomHandler struct{}
+type roomHandler struct {
+	services services.Services
+}
 
 func (h *roomHandler) getRoom(c *gin.Context) {}
 

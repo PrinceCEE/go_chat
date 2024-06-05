@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // accepts websocket connection from any origin
@@ -15,7 +16,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func SetupWebsocket(r *gin.Engine) {
+func SetupWebsocket(r *gin.Engine, conn *pgxpool.Pool) {
 	wSocket := websocketHandler{}
 
 	r.GET("/ws", wSocket.handleHandshake)

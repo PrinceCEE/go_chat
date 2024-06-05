@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/princecee/go_chat/app"
 )
@@ -12,6 +15,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// TODO - set up the configs and dependency injection
-	app.StartApp()
+	dsn := os.Getenv("DSN")
+	pool, err := pgxpool.New(context.Background(), dsn)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer pool.Close()
+
+	app.StartApp(pool)
 }

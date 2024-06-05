@@ -38,3 +38,7 @@ test_domain:
 	@clear
 	@echo "running e2e tests for ${domain}"
 	go test -v ./tests/${domain}
+
+.PHONY: run-sqlc
+run-sqlc:
+	sqlc generate

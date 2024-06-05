@@ -1,8 +1,13 @@
 package auth
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/princecee/go_chat/internal/services"
+)
 
-type authHandler struct{}
+type authHandler struct {
+	services services.Services
+}
 
 func (h *authHandler) signUp(c *gin.Context) {}
 
