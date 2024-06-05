@@ -1,9 +1,20 @@
 package services
 
-import "github.com/princecee/go_chat/internal/data/db"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/princecee/go_chat/internal/db/repositories"
+)
 
 type roomService struct {
-	store *db.Queries
+	conn           *pgxpool.Pool
+	RoomRepository RoomRepository
+}
+
+func NewRoomService(conn *pgxpool.Pool) RoomService {
+	return &roomService{
+		conn:           conn,
+		RoomRepository: repositories.NewRoomRepository(conn),
+	}
 }
 
 func (s *roomService) CreateRoom()     {}
@@ -19,6 +30,23 @@ func (s *roomService) CreateMessage()  {}
 func (s *roomService) GetMessage()     {}
 func (s *roomService) GetMessages()    {}
 func (s *roomService) DeleteMessage()  {}
+
+type RoomRepository interface {
+	CreateRoom()
+	GetRoom()
+	GetRooms()
+	DeleteRoom()
+	UpdateRoom()
+	CreateRoomMember()
+	GetRoomMember()
+	GetRoomMembers()
+	DeleteRoomMember()
+	UpdateRoomMember()
+	CreateRoomMessage()
+	GetRoomMessage()
+	GetRoomMessages()
+	DeleteRoomMessage()
+}
 
 type RoomService interface {
 	CreateRoom()

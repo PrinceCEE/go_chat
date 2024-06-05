@@ -3,13 +3,13 @@
 //   sqlc v1.26.0
 // source: user.sql
 
-package db
+package dataSource
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -24,8 +24,8 @@ type CreateUserParams struct {
 }
 
 type CreateUserRow struct {
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	ID        uuid.UUID
 }
 
@@ -110,7 +110,7 @@ type UpdateUserParams struct {
 	FirstName string
 	LastName  string
 	Email     string
-	UpdatedAt pgtype.Timestamptz
+	UpdatedAt time.Time
 	ID        uuid.UUID
 }
 

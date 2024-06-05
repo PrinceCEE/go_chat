@@ -15,17 +15,17 @@ start:
 .PHONY: migration/create
 migration/create:
 	@echo "creating new migration files for ${name}"
-	migrate create -ext sql -dir ./migrations -seq -digits 8 ${name}
+	migrate create -ext sql -dir ./internal/db/migrations -seq -digits 8 ${name}
 
 .PHONY: migration/up
 migration/up:
 	@echo "running migration"
-	migrate -path ./migrations -database ${DSN} up
+	migrate -path ./internal/db/migrations -database ${DSN} up
 
 .PHONY: migration/down
 migration/down:
 	@echo "running migration"
-	migrate -path ./migrations -database ${DSN} down
+	migrate -path ./internal/db/migrations -database ${DSN} down
 
 .PHONY: tests
 tests:

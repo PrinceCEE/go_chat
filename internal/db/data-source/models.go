@@ -2,9 +2,11 @@
 // versions:
 //   sqlc v1.26.0
 
-package db
+package dataSource
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -13,8 +15,8 @@ type Auth struct {
 	ID        uuid.UUID
 	Password  string
 	UserID    uuid.UUID
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Room struct {
@@ -22,16 +24,16 @@ type Room struct {
 	Name        string
 	Description pgtype.Text
 	MaxMembers  int32
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type RoomMember struct {
 	ID        uuid.UUID
 	RoomID    uuid.UUID
 	UserID    uuid.UUID
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type RoomMessage struct {
@@ -40,8 +42,8 @@ type RoomMessage struct {
 	RoomMemberID uuid.UUID
 	UserID       uuid.UUID
 	Content      string
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type User struct {
@@ -49,6 +51,6 @@ type User struct {
 	FirstName string
 	LastName  string
 	Email     string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
