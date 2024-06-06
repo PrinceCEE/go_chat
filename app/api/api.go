@@ -10,7 +10,7 @@ import (
 )
 
 func SetupAPI(r *gin.Engine, conn *pgxpool.Pool) {
-	v1 := r.Group("/v1")
+	v1 := r.Group("/api/v1")
 
 	services := services.New(conn)
 	auth.Routes(v1.Group("/auth"), services)
