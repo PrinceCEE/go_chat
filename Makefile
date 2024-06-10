@@ -33,14 +33,20 @@ tests:
 	@echo "running all tests"
 	go test -v ./...
 
+.PHONY: tests_domain
+tests_domain:
+	@clear
+	@echo "running all tests for ${domain}"
+	go test -v ./${domain}
+
 .PHONY: tests-e2e
 tests-e2e:
 	@clear
 	@echo "running e2e tests"
 	go test -v ./tests
 
-.PHONY: test_domain
-test_domain:
+.PHONY: test_e2e_domain
+test_e2e_domain:
 	@clear
 	@echo "running e2e tests for ${domain}"
 	go test -v ./tests/${domain}

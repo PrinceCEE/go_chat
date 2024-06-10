@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"log"
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -12,11 +10,7 @@ func UUIDToString(id uuid.UUID) string {
 }
 
 func StringToUUID(id string) uuid.UUID {
-	uuid, err := uuid.Parse(id)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	uuid, _ := uuid.Parse(id)
 	return uuid
 }
 
