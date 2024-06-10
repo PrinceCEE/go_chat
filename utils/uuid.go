@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func UUIDToString(id uuid.UUID) string {
@@ -17,4 +18,12 @@ func StringToUUID(id string) uuid.UUID {
 	}
 
 	return uuid
+}
+
+func StringToText(str string) pgtype.Text {
+	return pgtype.Text{String: str, Valid: true}
+}
+
+func TextToString(t pgtype.Text) string {
+	return t.String
 }

@@ -24,6 +24,7 @@ type Room struct {
 	Name        string
 	Description pgtype.Text
 	MaxMembers  int32
+	CreatedBy   uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
