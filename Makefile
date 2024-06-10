@@ -30,6 +30,12 @@ migration/down:
 .PHONY: tests
 tests:
 	@clear
+	@echo "running all tests"
+	go test -v ./...
+
+.PHONY: tests-e2e
+tests-e2e:
+	@clear
 	@echo "running e2e tests"
 	go test -v ./tests
 
