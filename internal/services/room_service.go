@@ -1,9 +1,15 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/princecee/go_chat/internal/db/repositories"
 	"github.com/princecee/go_chat/internal/models"
+)
+
+var (
+	ErrMaxMembersReached = errors.New("max room members reached")
 )
 
 type roomService struct {
@@ -19,14 +25,23 @@ func NewRoomService(conn *pgxpool.Pool) RoomService {
 }
 
 func (s *roomService) CreateRoom(room *models.Room, tx *pgxpool.Tx) error {
-	return s.RoomRepository.CreateRoom(room, tx)
+	err := s.RoomRepository.CreateRoom(room, tx)
+	if err != nil {
+		return err
+	}
+
+	member := &models.RoomMember{
+		RoomID: room.ID,
+		UserID: room.CreatedBy,
+	}
+	return s.JoinRoom(member, tx)
 }
 
 func (s *roomService) GetRoom(id string, tx *pgxpool.Tx) (*models.Room, error) {
 	return s.RoomRepository.GetRoom(id, tx)
 }
 
-func (s *roomService) GetRooms(createdBy string, tx *pgxpool.Tx) ([]*models.Room, error) {
+func (s *roomService) GetRooms(createdBy *string, tx *pgxpool.Tx) ([]*models.Room, error) {
 	return s.RoomRepository.GetRooms(createdBy, tx)
 }
 
@@ -42,11 +57,25 @@ func (s *roomService) GetRoomMember(id string, tx *pgxpool.Tx) (*models.RoomMemb
 	return s.RoomRepository.GetRoomMember(id, tx)
 }
 
-func (s *roomService) LeaveRoom(id string, tx *pgxpool.Tx) error {
-	return s.RoomRepository.DeleteRoomMember(id, tx)
+func (s *roomService) LeaveRoom(roomMemberID string, tx *pgxpool.Tx) error {
+	return s.RoomRepository.DeleteRoomMember(roomMemberID, tx)
 }
 
 func (s *roomService) JoinRoom(member *models.RoomMember, tx *pgxpool.Tx) error {
+	room, err := s.GetRoom(member.RoomID, tx)
+	if err != nil {
+		return err
+	}
+
+	memberCount, err := s.RoomRepository.GetRoomMemberCount(room.ID, tx)
+	if err != nil {
+		return err
+	}
+
+	if room.MaxMembers < *memberCount+1 {
+		return ErrMaxMembersReached
+	}
+
 	return s.RoomRepository.CreateRoomMember(member, tx)
 }
 
@@ -73,11 +102,12 @@ func (s *roomService) DeleteMessage(id string, tx *pgxpool.Tx) error {
 type RoomRepository interface {
 	CreateRoom(room *models.Room, tx *pgxpool.Tx) error
 	GetRoom(id string, tx *pgxpool.Tx) (*models.Room, error)
-	GetRooms(createdBy string, tx *pgxpool.Tx) ([]*models.Room, error)
+	GetRooms(createdBy *string, tx *pgxpool.Tx) ([]*models.Room, error)
 	DeleteRoom(id string, tx *pgxpool.Tx) error
 	UpdateRoom(room *models.Room, tx *pgxpool.Tx) error
 	CreateRoomMember(member *models.RoomMember, tx *pgxpool.Tx) error
 	GetRoomMember(id string, tx *pgxpool.Tx) (*models.RoomMember, error)
+	GetRoomMemberCount(roomId string, tx *pgxpool.Tx) (*int, error)
 	GetRoomMembers(params repositories.GetRoomMembersParams, tx *pgxpool.Tx) ([]*models.RoomMember, error)
 	DeleteRoomMember(id string, tx *pgxpool.Tx) error
 	CreateRoomMessage(message *models.RoomMessage, tx *pgxpool.Tx) error
@@ -89,7 +119,7 @@ type RoomRepository interface {
 type RoomService interface {
 	CreateRoom(room *models.Room, tx *pgxpool.Tx) error
 	GetRoom(id string, tx *pgxpool.Tx) (*models.Room, error)
-	GetRooms(createdBy string, tx *pgxpool.Tx) ([]*models.Room, error)
+	GetRooms(createdBy *string, tx *pgxpool.Tx) ([]*models.Room, error)
 	DeleteRoom(id string, tx *pgxpool.Tx) error
 	UpdateRoom(room *models.Room, tx *pgxpool.Tx) error
 	GetRoomMember(id string, tx *pgxpool.Tx) (*models.RoomMember, error)

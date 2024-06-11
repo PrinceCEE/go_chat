@@ -38,8 +38,11 @@ func (s *UserServiceTestSuite) TearDownSuite() {
 	defer s.service.conn.Close()
 
 	teardownQuery := `
-		DELETE FROM users;
+		DELETE FROM auths;
+		DELETE FROM room_messages;
+		DELETE FROM room_members;
 		DELETE FROM rooms;
+		DELETE FROM users;
 	`
 
 	_, err := s.service.conn.Exec(context.Background(), teardownQuery)
