@@ -29,6 +29,9 @@ SELECT * FROM room_members WHERE room_id = COALESCE(sqlc.narg(room_id), room_id)
 -- name: DeleteRoomMember :exec
 DELETE FROM room_members WHERE id = $1;
 
+-- name: RoomMembersCount :one
+SELECT COUNT(*) AS count FROM room_members WHERE room_id = $1;
+
 -- name: CreateRoomMessage :one
 INSERT INTO room_messages (room_id, room_member_id, user_id, content)
 VALUES ($1, $2, $3, $4)

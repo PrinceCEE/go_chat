@@ -58,21 +58,19 @@ func (r *roomRepository) GetRoom(id string, tx *pgxpool.Tx) (*models.Room, error
 		UpdatedAt:   _room.UpdatedAt,
 		Name:        _room.Name,
 		Description: _room.Description.String,
+		MaxMembers:  int(_room.MaxMembers),
 		CreatedBy:   utils.UUIDToString(_room.CreatedBy),
 	}, nil
 }
 
-func (r *roomRepository) GetRooms(createdBy string, tx *pgxpool.Tx) ([]*models.Room, error) {
+func (r *roomRepository) GetRooms(createdBy *string, tx *pgxpool.Tx) ([]*models.Room, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
 	}
 
 	cUUID := pgtype.UUID{}
-	err := cUUID.Scan(createdBy)
-	if err != nil {
-		return nil, err
-	}
+	cUUID.Scan(createdBy)
 
 	_rooms, err := ds.GetRooms(context.Background(), cUUID)
 	if err != nil {
@@ -173,15 +171,8 @@ func (r *roomRepository) GetRoomMembers(params GetRoomMembersParams, tx *pgxpool
 	}
 
 	var userIDUUID, roomIDUUID pgtype.UUID
-	err := userIDUUID.Scan(params.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = roomIDUUID.Scan(params.RoomID)
-	if err != nil {
-		return nil, err
-	}
+	userIDUUID.Scan(params.UserID)
+	roomIDUUID.Scan(params.RoomID)
 
 	_roomMembers, err := ds.GetRoomMembers(context.Background(), dataSource.GetRoomMembersParams{
 		UserID: userIDUUID,
@@ -212,6 +203,21 @@ func (r *roomRepository) DeleteRoomMember(id string, tx *pgxpool.Tx) error {
 	}
 
 	return ds.DeleteRoomMember(context.Background(), utils.StringToUUID(id))
+}
+
+func (r *roomRepository) GetRoomMemberCount(roomId string, tx *pgxpool.Tx) (*int, error) {
+	ds := dataSource.New(r.conn)
+	if tx != nil {
+		ds = ds.WithTx(tx)
+	}
+
+	count, err := ds.RoomMembersCount(context.Background(), utils.StringToUUID(roomId))
+	if err != nil {
+		return nil, err
+	}
+
+	_count := int(count)
+	return &_count, nil
 }
 
 func (r *roomRepository) CreateRoomMessage(message *models.RoomMessage, tx *pgxpool.Tx) error {
@@ -272,18 +278,9 @@ func (r *roomRepository) GetRoomMessages(params GetRoomMessagesParams, tx *pgxpo
 	}
 
 	var roomIDUUID, roomMemberIDUUID, userIDUUID pgtype.UUID
-	err := roomIDUUID.Scan(params.RoomID)
-	if err != nil {
-		return nil, err
-	}
-	err = roomMemberIDUUID.Scan(params.RoomMemberID)
-	if err != nil {
-		return nil, err
-	}
-	err = userIDUUID.Scan(params.UserID)
-	if err != nil {
-		return nil, err
-	}
+	roomIDUUID.Scan(params.RoomID)
+	roomMemberIDUUID.Scan(params.RoomMemberID)
+	userIDUUID.Scan(params.UserID)
 
 	_messages, err := ds.GetRoomMessages(context.Background(), dataSource.GetRoomMessagesParams{
 		RoomID:       roomIDUUID,

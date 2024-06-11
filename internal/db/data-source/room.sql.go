@@ -288,6 +288,17 @@ func (q *Queries) GetRooms(ctx context.Context, createdBy pgtype.UUID) ([]Room, 
 	return items, nil
 }
 
+const roomMembersCount = `-- name: RoomMembersCount :one
+SELECT COUNT(*) AS count FROM room_members WHERE room_id = $1
+`
+
+func (q *Queries) RoomMembersCount(ctx context.Context, roomID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, roomMembersCount, roomID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const updateRoom = `-- name: UpdateRoom :exec
 UPDATE rooms SET updated_at = $1, name = $2, description = $3, max_members = $4
 WHERE id = $5
