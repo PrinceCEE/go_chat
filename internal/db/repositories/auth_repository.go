@@ -25,7 +25,7 @@ func (r *authRepository) CreateAuth(auth *models.Auth, tx *pgxpool.Tx) error {
 	}
 
 	_auth, err := ds.CreateAuth(context.Background(), dataSource.CreateAuthParams{
-		UserID:   utils.StringToUUID(auth.ID),
+		UserID:   utils.StringToUUID(auth.UserID),
 		Password: auth.Password,
 	})
 	if err != nil {
