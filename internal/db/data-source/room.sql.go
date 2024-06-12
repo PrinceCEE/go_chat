@@ -161,6 +161,28 @@ func (q *Queries) GetRoomMember(ctx context.Context, id uuid.UUID) (RoomMember, 
 	return i, err
 }
 
+const getRoomMemberByWhere = `-- name: GetRoomMemberByWhere :one
+SELECT id, room_id, user_id, created_at, updated_at FROM room_members WHERE user_id = $1 AND room_id = $2
+`
+
+type GetRoomMemberByWhereParams struct {
+	UserID uuid.UUID
+	RoomID uuid.UUID
+}
+
+func (q *Queries) GetRoomMemberByWhere(ctx context.Context, arg GetRoomMemberByWhereParams) (RoomMember, error) {
+	row := q.db.QueryRow(ctx, getRoomMemberByWhere, arg.UserID, arg.RoomID)
+	var i RoomMember
+	err := row.Scan(
+		&i.ID,
+		&i.RoomID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getRoomMembers = `-- name: GetRoomMembers :many
 SELECT id, room_id, user_id, created_at, updated_at FROM room_members WHERE room_id = COALESCE($1, room_id) AND user_id = COALESCE($2, user_id)
 `

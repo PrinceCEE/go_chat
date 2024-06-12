@@ -8,6 +8,7 @@ type services struct {
 	userService UserService
 	roomService RoomService
 	authService AuthService
+	conn        *pgxpool.Pool
 }
 
 func New(conn *pgxpool.Pool) *services {
@@ -16,7 +17,7 @@ func New(conn *pgxpool.Pool) *services {
 	rservice := NewRoomService(conn)
 	aservice := NewAuthService(conn)
 
-	return &services{uservice, rservice, aservice}
+	return &services{uservice, rservice, aservice, conn}
 }
 
 func (s *services) GetUserService() UserService {
@@ -31,8 +32,13 @@ func (s *services) GetAuthService() AuthService {
 	return s.authService
 }
 
+func (s *services) GetDB() *pgxpool.Pool {
+	return s.conn
+}
+
 type Services interface {
 	GetUserService() UserService
 	GetRoomService() RoomService
 	GetAuthService() AuthService
+	GetDB() *pgxpool.Pool
 }

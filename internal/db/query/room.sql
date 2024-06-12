@@ -23,6 +23,9 @@ RETURNING id, created_at, updated_at;
 -- name: GetRoomMember :one
 SELECT * FROM room_members WHERE id = $1 LIMIT 1;
 
+-- name: GetRoomMemberByWhere :one
+SELECT * FROM room_members WHERE user_id = $1 AND room_id = $2;
+
 -- name: GetRoomMembers :many
 SELECT * FROM room_members WHERE room_id = COALESCE(sqlc.narg(room_id), room_id) AND user_id = COALESCE(sqlc.narg(user_id), user_id);
 

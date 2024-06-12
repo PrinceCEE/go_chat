@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	dataSource "github.com/princecee/go_chat/internal/db/data-source"
 	"github.com/princecee/go_chat/internal/models"
@@ -18,7 +19,7 @@ func NewAuthRepository(conn *pgxpool.Pool) *authRepository {
 	return &authRepository{conn}
 }
 
-func (r *authRepository) CreateAuth(auth *models.Auth, tx *pgxpool.Tx) error {
+func (r *authRepository) CreateAuth(auth *models.Auth, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -39,7 +40,7 @@ func (r *authRepository) CreateAuth(auth *models.Auth, tx *pgxpool.Tx) error {
 	return nil
 }
 
-func (r *authRepository) GetUserAuth(userId string, tx *pgxpool.Tx) (*models.Auth, error) {
+func (r *authRepository) GetUserAuth(userId string, tx pgx.Tx) (*models.Auth, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -59,7 +60,7 @@ func (r *authRepository) GetUserAuth(userId string, tx *pgxpool.Tx) (*models.Aut
 	}, nil
 }
 
-func (r *authRepository) UpdateUserAuth(auth *models.Auth, tx *pgxpool.Tx) error {
+func (r *authRepository) UpdateUserAuth(auth *models.Auth, tx pgx.Tx) error {
 	auth.UpdatedAt = time.Now()
 
 	ds := dataSource.New(r.conn)

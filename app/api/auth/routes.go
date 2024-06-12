@@ -11,6 +11,4 @@ func Routes(r *gin.RouterGroup, s services.Services) {
 
 	r.POST("/sign-up", middlewares.ErrorHandler(h.signUp))
 	r.POST("/sign-in", middlewares.ErrorHandler(h.signIn))
-	r.POST("/reset-password", middlewares.ErrorHandler(h.resetPassword))
-	r.POST("/change-password", middlewares.ErrorHandler(h.changePassword))
 }

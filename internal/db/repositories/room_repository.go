@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	dataSource "github.com/princecee/go_chat/internal/db/data-source"
@@ -19,7 +20,7 @@ func NewRoomRepository(conn *pgxpool.Pool) *roomRepository {
 	return &roomRepository{conn}
 }
 
-func (r *roomRepository) CreateRoom(room *models.Room, tx *pgxpool.Tx) error {
+func (r *roomRepository) CreateRoom(room *models.Room, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -41,7 +42,7 @@ func (r *roomRepository) CreateRoom(room *models.Room, tx *pgxpool.Tx) error {
 	return nil
 }
 
-func (r *roomRepository) GetRoom(id string, tx *pgxpool.Tx) (*models.Room, error) {
+func (r *roomRepository) GetRoom(id string, tx pgx.Tx) (*models.Room, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -63,7 +64,7 @@ func (r *roomRepository) GetRoom(id string, tx *pgxpool.Tx) (*models.Room, error
 	}, nil
 }
 
-func (r *roomRepository) GetRooms(createdBy *string, tx *pgxpool.Tx) ([]*models.Room, error) {
+func (r *roomRepository) GetRooms(createdBy *string, tx pgx.Tx) ([]*models.Room, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -93,7 +94,7 @@ func (r *roomRepository) GetRooms(createdBy *string, tx *pgxpool.Tx) ([]*models.
 	return rooms, nil
 }
 
-func (r *roomRepository) DeleteRoom(id string, tx *pgxpool.Tx) error {
+func (r *roomRepository) DeleteRoom(id string, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -102,7 +103,7 @@ func (r *roomRepository) DeleteRoom(id string, tx *pgxpool.Tx) error {
 	return ds.DeleteRoom(context.Background(), utils.StringToUUID(id))
 }
 
-func (r *roomRepository) UpdateRoom(room *models.Room, tx *pgxpool.Tx) error {
+func (r *roomRepository) UpdateRoom(room *models.Room, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -118,7 +119,7 @@ func (r *roomRepository) UpdateRoom(room *models.Room, tx *pgxpool.Tx) error {
 	})
 }
 
-func (r *roomRepository) CreateRoomMember(member *models.RoomMember, tx *pgxpool.Tx) error {
+func (r *roomRepository) CreateRoomMember(member *models.RoomMember, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -139,7 +140,7 @@ func (r *roomRepository) CreateRoomMember(member *models.RoomMember, tx *pgxpool
 	return nil
 }
 
-func (r *roomRepository) GetRoomMember(id string, tx *pgxpool.Tx) (*models.RoomMember, error) {
+func (r *roomRepository) GetRoomMember(id string, tx pgx.Tx) (*models.RoomMember, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -159,12 +160,40 @@ func (r *roomRepository) GetRoomMember(id string, tx *pgxpool.Tx) (*models.RoomM
 	}, nil
 }
 
+type GetRoomMemberByWhereParams struct {
+	UserID string
+	RoomID string
+}
+
+func (r *roomRepository) GetRoomMemberByWhere(params GetRoomMemberByWhereParams, tx pgx.Tx) (*models.RoomMember, error) {
+	ds := dataSource.New(r.conn)
+	if tx != nil {
+		ds = ds.WithTx(tx)
+	}
+
+	_member, err := ds.GetRoomMemberByWhere(context.Background(), dataSource.GetRoomMemberByWhereParams{
+		UserID: utils.StringToUUID(params.UserID),
+		RoomID: utils.StringToUUID(params.RoomID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.RoomMember{
+		ID:        utils.UUIDToString(_member.ID),
+		CreatedAt: _member.CreatedAt,
+		UpdatedAt: _member.UpdatedAt,
+		RoomID:    utils.UUIDToString(_member.RoomID),
+		UserID:    utils.UUIDToString(_member.UserID),
+	}, nil
+}
+
 type GetRoomMembersParams struct {
 	RoomID *string
 	UserID *string
 }
 
-func (r *roomRepository) GetRoomMembers(params GetRoomMembersParams, tx *pgxpool.Tx) ([]*models.RoomMember, error) {
+func (r *roomRepository) GetRoomMembers(params GetRoomMembersParams, tx pgx.Tx) ([]*models.RoomMember, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -196,7 +225,7 @@ func (r *roomRepository) GetRoomMembers(params GetRoomMembersParams, tx *pgxpool
 	return roomMembers, nil
 }
 
-func (r *roomRepository) DeleteRoomMember(id string, tx *pgxpool.Tx) error {
+func (r *roomRepository) DeleteRoomMember(id string, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -205,7 +234,7 @@ func (r *roomRepository) DeleteRoomMember(id string, tx *pgxpool.Tx) error {
 	return ds.DeleteRoomMember(context.Background(), utils.StringToUUID(id))
 }
 
-func (r *roomRepository) GetRoomMemberCount(roomId string, tx *pgxpool.Tx) (*int, error) {
+func (r *roomRepository) GetRoomMemberCount(roomId string, tx pgx.Tx) (*int, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -220,7 +249,7 @@ func (r *roomRepository) GetRoomMemberCount(roomId string, tx *pgxpool.Tx) (*int
 	return &_count, nil
 }
 
-func (r *roomRepository) CreateRoomMessage(message *models.RoomMessage, tx *pgxpool.Tx) error {
+func (r *roomRepository) CreateRoomMessage(message *models.RoomMessage, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -243,7 +272,7 @@ func (r *roomRepository) CreateRoomMessage(message *models.RoomMessage, tx *pgxp
 	return nil
 }
 
-func (r *roomRepository) GetRoomMessage(id string, tx *pgxpool.Tx) (*models.RoomMessage, error) {
+func (r *roomRepository) GetRoomMessage(id string, tx pgx.Tx) (*models.RoomMessage, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -271,7 +300,7 @@ type GetRoomMessagesParams struct {
 	UserID       *string
 }
 
-func (r *roomRepository) GetRoomMessages(params GetRoomMessagesParams, tx *pgxpool.Tx) ([]*models.RoomMessage, error) {
+func (r *roomRepository) GetRoomMessages(params GetRoomMessagesParams, tx pgx.Tx) ([]*models.RoomMessage, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -307,7 +336,7 @@ func (r *roomRepository) GetRoomMessages(params GetRoomMessagesParams, tx *pgxpo
 	return messages, nil
 }
 
-func (r *roomRepository) DeleteRoomMessage(id string, tx *pgxpool.Tx) error {
+func (r *roomRepository) DeleteRoomMessage(id string, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	dataSource "github.com/princecee/go_chat/internal/db/data-source"
 	"github.com/princecee/go_chat/internal/models"
@@ -18,7 +19,7 @@ func NewUserRepository(conn *pgxpool.Pool) *userRepository {
 	return &userRepository{conn}
 }
 
-func (r *userRepository) CreateUser(user *models.User, tx *pgxpool.Tx) error {
+func (r *userRepository) CreateUser(user *models.User, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -45,7 +46,7 @@ type GetUserParams struct {
 	Email string
 }
 
-func (r *userRepository) GetUser(data GetUserParams, tx *pgxpool.Tx) (*models.User, error) {
+func (r *userRepository) GetUser(data GetUserParams, tx pgx.Tx) (*models.User, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -69,7 +70,7 @@ func (r *userRepository) GetUser(data GetUserParams, tx *pgxpool.Tx) (*models.Us
 	}, nil
 }
 
-func (r *userRepository) GetUsers(tx *pgxpool.Tx) ([]*models.User, error) {
+func (r *userRepository) GetUsers(tx pgx.Tx) ([]*models.User, error) {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -96,7 +97,7 @@ func (r *userRepository) GetUsers(tx *pgxpool.Tx) ([]*models.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) DeleteUser(userId string, tx *pgxpool.Tx) error {
+func (r *userRepository) DeleteUser(userId string, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
@@ -105,7 +106,7 @@ func (r *userRepository) DeleteUser(userId string, tx *pgxpool.Tx) error {
 	return ds.DeleteUser(context.Background(), utils.StringToUUID(userId))
 }
 
-func (r *userRepository) UpdateUser(user *models.User, tx *pgxpool.Tx) error {
+func (r *userRepository) UpdateUser(user *models.User, tx pgx.Tx) error {
 	ds := dataSource.New(r.conn)
 	if tx != nil {
 		ds = ds.WithTx(tx)
