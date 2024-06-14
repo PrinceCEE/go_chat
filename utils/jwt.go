@@ -16,7 +16,7 @@ type TokenClaims struct {
 func GenerateToken(t *TokenClaims) (string, error) {
 	key := []byte(os.Getenv("JWT_KEY"))
 	t.IssuedAt = jwt.NewNumericDate(time.Now())
-	t.Issuer = "escrowAPI"
+	t.Issuer = "goChat"
 	t.Subject = t.UserID
 	t.ExpiresAt = jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour))
 

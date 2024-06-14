@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/princecee/go_chat/internal/db/repositories"
@@ -12,25 +11,25 @@ import (
 
 func Authenticator(s services.Services) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		arr := strings.Split(c.Request.Header.Get("Authorization"), " ")
-
+		token := c.Request.Header.Get("Authorization")
 		badReqResponse := utils.ResponseGeneric{
 			Success: false,
 			Message: "invalid token",
 		}
-		if len(arr) != 2 {
+
+		if token == "" {
 			c.JSON(http.StatusBadRequest, badReqResponse)
 			return
 		}
 
-		token, err := utils.VerifyToken(arr[1])
+		payload, err := utils.VerifyToken(token)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, badReqResponse)
 			return
 		}
 
 		user, err := s.GetUserService().GetUser(repositories.GetUserParams{
-			ID: token.ID,
+			ID: payload.Subject,
 		}, nil)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, badReqResponse)

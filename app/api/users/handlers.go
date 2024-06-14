@@ -3,6 +3,7 @@ package users
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/princecee/go_chat/internal/models"
@@ -74,6 +75,16 @@ func (h *userHandler) updateAccount(c *gin.Context) error {
 			Err:        err,
 			StatusCode: http.StatusBadRequest,
 		}
+	}
+
+	if updateDto.Email != nil {
+		user.Email = strings.ToLower(*updateDto.Email)
+	}
+	if updateDto.FirstName != nil {
+		user.FirstName = *updateDto.FirstName
+	}
+	if updateDto.LastName != nil {
+		user.LastName = *updateDto.LastName
 	}
 
 	userService := h.services.GetUserService()

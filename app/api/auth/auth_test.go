@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type AuthSuite struct {
+type AuthTestSuite struct {
 	suite.Suite
 	services services.Services
 	server   *httptest.Server
 }
 
-func (s *AuthSuite) SetupSuite() {
+func (s *AuthTestSuite) SetupSuite() {
 	gin.SetMode(gin.TestMode)
 
 	if err := godotenv.Load("../../../.env"); err != nil {
@@ -42,12 +42,12 @@ func (s *AuthSuite) SetupSuite() {
 	s.services = services.New(conn)
 
 	r := gin.New()
-	Routes(&r.RouterGroup, s.services)
+	Routes(r.Group("/api/v1/auth"), s.services)
 
 	s.server = httptest.NewServer(r.Handler())
 }
 
-func (s *AuthSuite) TearDownSuite() {
+func (s *AuthTestSuite) TearDownSuite() {
 	db := s.services.GetDB()
 	defer db.Close()
 	defer s.server.Close()
@@ -68,7 +68,7 @@ func (s *AuthSuite) TearDownSuite() {
 	}
 }
 
-func (s *AuthSuite) TestAuth() {
+func (s *AuthTestSuite) TestAuthHandler() {
 	client := s.server.Client()
 	baseUrl := s.server.URL
 	contentType := "application/json"
@@ -84,7 +84,7 @@ func (s *AuthSuite) TestAuth() {
 		userJson, err := json.Marshal(user)
 		s.NoError(err)
 
-		resp, err := client.Post(baseUrl+"/sign-up", contentType, bytes.NewBuffer(userJson))
+		resp, err := client.Post(baseUrl+"/api/v1/auth/sign-up", contentType, bytes.NewBuffer(userJson))
 		s.NoError(err)
 
 		s.Equal(http.StatusOK, resp.StatusCode)
@@ -104,7 +104,7 @@ func (s *AuthSuite) TestAuth() {
 		userJson, err := json.Marshal(user)
 		s.NoError(err)
 
-		resp, err := client.Post(baseUrl+"/sign-up", contentType, bytes.NewBuffer(userJson))
+		resp, err := client.Post(baseUrl+"/api/v1/auth/sign-up", contentType, bytes.NewBuffer(userJson))
 		s.NoError(err)
 		s.Equal(http.StatusBadRequest, resp.StatusCode)
 
@@ -122,7 +122,7 @@ func (s *AuthSuite) TestAuth() {
 		signInjson, err := json.Marshal(signInDto)
 		s.NoError(err)
 
-		resp, err := client.Post(baseUrl+"/sign-in", contentType, bytes.NewBuffer(signInjson))
+		resp, err := client.Post(baseUrl+"/api/v1/auth/sign-in", contentType, bytes.NewBuffer(signInjson))
 		s.NoError(err)
 
 		var data utils.Response[map[string]models.User]
@@ -137,6 +137,6 @@ func (s *AuthSuite) TestAuth() {
 	})
 }
 
-func TestAuth(t *testing.T) {
-	suite.Run(t, new(AuthSuite))
+func TestAuthHandler(t *testing.T) {
+	suite.Run(t, new(AuthTestSuite))
 }
