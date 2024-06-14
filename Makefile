@@ -33,11 +33,11 @@ tests:
 	@echo "running all tests"
 	go test -v ./...
 
-.PHONY: tests_domain
-tests_domain:
+.PHONY: tests_dir
+tests_dir:
 	@clear
-	@echo "running all tests for ${domain}"
-	go test -v ./${domain}
+	@echo "running all tests for ${dir}"
+	go test -v ./${dir}
 
 .PHONY: tests-e2e
 tests-e2e:

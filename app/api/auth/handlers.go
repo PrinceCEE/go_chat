@@ -38,9 +38,32 @@ func (h *authHandler) signUp(c *gin.Context) error {
 
 	userService := h.services.GetUserService()
 	authService := h.services.GetAuthService()
-	tx, _ := h.services.GetDB().Begin(context.Background())
 
 	signupDto.Email = strings.ToLower(signupDto.Email)
+
+	userExists, err := userService.GetUser(repositories.GetUserParams{
+		Email: signupDto.Email,
+	}, nil)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return &utils.ServerError{
+				Message:    err.Error(),
+				Err:        err,
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+	}
+
+	if userExists != nil {
+		return &utils.ServerError{
+			Message:    "account already exists",
+			Err:        utils.ErrDuplicateRecord,
+			StatusCode: http.StatusBadRequest,
+		}
+	}
+
+	tx, _ := h.services.GetDB().Begin(context.Background())
+
 	user := &models.User{
 		FirstName: signupDto.FirstName,
 		LastName:  signupDto.LastName,
