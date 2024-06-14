@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type AuthTestSuite struct {
+type authTestSuite struct {
 	suite.Suite
 	services services.Services
 	server   *httptest.Server
 }
 
-func (s *AuthTestSuite) SetupSuite() {
+func (s *authTestSuite) SetupSuite() {
 	gin.SetMode(gin.TestMode)
 
 	if err := godotenv.Load("../../../.env"); err != nil {
@@ -47,7 +47,7 @@ func (s *AuthTestSuite) SetupSuite() {
 	s.server = httptest.NewServer(r.Handler())
 }
 
-func (s *AuthTestSuite) TearDownSuite() {
+func (s *authTestSuite) TearDownSuite() {
 	db := s.services.GetDB()
 	defer db.Close()
 	defer s.server.Close()
@@ -68,7 +68,7 @@ func (s *AuthTestSuite) TearDownSuite() {
 	}
 }
 
-func (s *AuthTestSuite) TestAuthHandler() {
+func (s *authTestSuite) TestAuthHandler() {
 	client := s.server.Client()
 	baseUrl := s.server.URL
 	contentType := "application/json"
@@ -138,5 +138,5 @@ func (s *AuthTestSuite) TestAuthHandler() {
 }
 
 func TestAuthHandler(t *testing.T) {
-	suite.Run(t, new(AuthTestSuite))
+	suite.Run(t, new(authTestSuite))
 }

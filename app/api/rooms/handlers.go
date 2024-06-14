@@ -105,7 +105,7 @@ func (h *roomHandler) createRoom(c *gin.Context) error {
 	}
 
 	var createRoomDto CreateRoomDto
-	err := c.Bind(&createRoomDto)
+	err := c.BindJSON(&createRoomDto)
 	if err != nil {
 		return &utils.ServerError{
 			Err:        err,
@@ -123,6 +123,8 @@ func (h *roomHandler) createRoom(c *gin.Context) error {
 	}
 
 	tx, _ := h.services.GetDB().Begin(context.Background())
+	defer tx.Rollback(context.Background())
+
 	err = h.services.GetRoomService().CreateRoom(room, tx)
 	if err != nil {
 		return &utils.ServerError{
@@ -194,12 +196,12 @@ func (h *roomHandler) deleteRoom(c *gin.Context) error {
 		}
 	}
 
-	err = roomService.DeleteMessage(roomId, nil)
+	err = roomService.DeleteRoom(roomId, nil)
 	if err != nil {
 		return &utils.ServerError{
-			Message:    utils.ErrUnauthorized.Error(),
-			Err:        utils.ErrUnauthorized,
-			StatusCode: http.StatusUnauthorized,
+			Message:    err.Error(),
+			Err:        err,
+			StatusCode: http.StatusInternalServerError,
 		}
 	}
 
@@ -281,6 +283,20 @@ func (h *roomHandler) updateRoom(c *gin.Context) error {
 		room.MaxMembers = *updateRoomDto.MaxMembers
 	}
 
+	err = roomService.UpdateRoom(room, nil)
+	if err != nil {
+		return &utils.ServerError{
+			Message:    err.Error(),
+			Err:        err,
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	c.JSON(http.StatusOK, utils.ResponseGeneric{
+		Success: true,
+		Message: "updated room successfully",
+		Data:    map[string]any{"room": room},
+	})
 	return nil
 }
 
@@ -318,7 +334,7 @@ func (h *roomHandler) joinRoom(c *gin.Context) error {
 		UserID: user.ID,
 		RoomID: roomId,
 	}, nil)
-	if err != nil || member != nil {
+	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return &utils.ServerError{
 				Err:        err,
@@ -326,27 +342,30 @@ func (h *roomHandler) joinRoom(c *gin.Context) error {
 				StatusCode: http.StatusUnauthorized,
 			}
 		}
-
-		if member != nil {
-			return &utils.ServerError{
-				Err:        utils.ErrDuplicateRecord,
-				Message:    "already a member",
-				StatusCode: http.StatusNotAcceptable,
-			}
+	}
+	if member != nil {
+		return &utils.ServerError{
+			Err:        utils.ErrDuplicateRecord,
+			Message:    "already a member",
+			StatusCode: http.StatusNotAcceptable,
 		}
 	}
-
 	member = &models.RoomMember{
 		UserID: user.ID,
 		RoomID: roomId,
 	}
 	err = roomService.JoinRoom(member, nil)
 	if err != nil {
-		return &utils.ServerError{
-			Message:    err.Error(),
-			Err:        err,
-			StatusCode: http.StatusInternalServerError,
+		se := utils.ServerError{Err: err}
+		switch {
+		case errors.Is(err, services.ErrMaxMembersReached):
+			se.StatusCode = http.StatusUnauthorized
+			se.Message = "max room members reached"
+		default:
+			se.StatusCode = http.StatusInternalServerError
+			se.Message = err.Error()
 		}
+		return &se
 	}
 
 	c.JSON(http.StatusOK, utils.ResponseGeneric{
@@ -482,7 +501,9 @@ func (h *roomHandler) getRoomMembers(c *gin.Context) error {
 			c.JSON(http.StatusOK, utils.ResponseGeneric{
 				Success: true,
 				Message: "members fetched successfully",
-				Data:    map[string][]*models.RoomMember{},
+				Data: map[string][]*models.RoomMember{
+					"members": {},
+				},
 			})
 			return nil
 		}
@@ -497,7 +518,9 @@ func (h *roomHandler) getRoomMembers(c *gin.Context) error {
 	c.JSON(http.StatusOK, utils.ResponseGeneric{
 		Success: true,
 		Message: "members fetched successfully",
-		Data:    members,
+		Data: map[string][]*models.RoomMember{
+			"members": members,
+		},
 	})
 
 	return nil
@@ -561,7 +584,9 @@ func (h *roomHandler) getRoomMessages(c *gin.Context) error {
 			c.JSON(http.StatusOK, utils.ResponseGeneric{
 				Success: true,
 				Message: "messages fetched successfully",
-				Data:    map[string][]*models.RoomMessage{},
+				Data: map[string][]*models.RoomMessage{
+					"messages": {},
+				},
 			})
 			return nil
 		}
@@ -576,7 +601,9 @@ func (h *roomHandler) getRoomMessages(c *gin.Context) error {
 	c.JSON(http.StatusOK, utils.ResponseGeneric{
 		Success: true,
 		Message: "messages fetched successfully",
-		Data:    messages,
+		Data: map[string][]*models.RoomMessage{
+			"messages": messages,
+		},
 	})
 
 	return nil
