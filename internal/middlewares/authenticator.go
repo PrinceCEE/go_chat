@@ -11,18 +11,12 @@ import (
 
 func Authenticator(s services.Services) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("Authorization")
 		badReqResponse := utils.ResponseGeneric{
 			Success: false,
 			Message: "invalid token",
 		}
 
-		if token == "" {
-			c.JSON(http.StatusBadRequest, badReqResponse)
-			return
-		}
-
-		payload, err := utils.VerifyToken(token)
+		payload, err := utils.GetTokenFromRequest(c.Request)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, badReqResponse)
 			return

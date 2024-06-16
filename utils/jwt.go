@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	"net/http"
 	"os"
 	"time"
 
@@ -36,4 +38,19 @@ func VerifyToken(tokenStr string) (*TokenClaims, error) {
 	}
 
 	return token.Claims.(*TokenClaims), nil
+}
+
+func GetTokenFromRequest(r *http.Request) (*TokenClaims, error) {
+	token := r.Header.Get("Authorization")
+
+	if token == "" {
+		return nil, errors.New("invalid token")
+	}
+
+	payload, err := VerifyToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }

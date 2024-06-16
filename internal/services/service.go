@@ -11,7 +11,12 @@ type services struct {
 	conn        *pgxpool.Pool
 }
 
+var _services *services
+
 func New(conn *pgxpool.Pool) *services {
+	if _services != nil {
+		return _services
+	}
 
 	uservice := NewUserService(conn)
 	rservice := NewRoomService(conn)
